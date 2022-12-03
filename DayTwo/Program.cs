@@ -1,13 +1,13 @@
-﻿/*
-X, A - Rock
-Y, B - Paper 
-Z, C - Scissors 
+/*
+X - lose, A - Rock
+Y - draw, B - Paper 
+Z - win, C - Scissors 
 */
 
-int CalculateRoundResult(Weapon weapon, RoundResult roundResult) =>
-    ((int)weapon + (int)roundResult);
-
-var rounds = File.ReadAllLines("input.txt").ToList() ?? throw new ArgumentNullException();
+using DayTwo;
+using static DayTwo.F;
+var rounds = File.ReadAllLines("input.txt").ToList();
+Console.WriteLine("Result for task 1");
 Console.WriteLine(
     rounds.Select(str =>
     {
@@ -17,35 +17,28 @@ Console.WriteLine(
         return CalculateRoundResult(myWeapon, roundResult);
     }).Sum()
 );
+Console.WriteLine("Result for task 2");
+Console.WriteLine(
+    rounds.Select(str =>
+    {
+        var splitList = str.Split(' ');
+        var (roundResult, opponentWeapon) = (splitList[1].ParseRoundResult(), splitList[0].ParseWeapon());
+        var myWeapon = GetWeaponFor(roundResult, opponentWeapon);
+        return CalculateRoundResult(myWeapon, roundResult);
+    }).Sum()
+);
 
-public enum RoundResult { Draw = 3, Lost = 0, Won = 6}
-public enum Weapon { Rock = 1, Paper = 2, Scissors = 3}
-
-public static class Extensions
+static Weapon GetWeaponFor(RoundResult roundResult, Weapon weapon)
 {
-    public static Weapon ParseWeapon(this string str)
+    return (weapon, roundResult) switch
     {
-        var lowerStr = str.ToLowerInvariant();
-        return lowerStr switch
-        {
-            "x" or "a" => Weapon.Rock,
-            "y" or "b" => Weapon.Paper,
-            "z" or "c" => Weapon.Scissors,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
-    public static RoundResult GetRoundResult(this Weapon l, Weapon r)
-    {
-        return (l, r) switch
-        {
-            (_, _) when l == r => RoundResult.Draw,  
-            (Weapon.Paper, Weapon.Rock) => RoundResult.Won,
-            (Weapon.Paper, Weapon.Scissors) => RoundResult.Lost,
-            (Weapon.Rock, Weapon.Paper) => RoundResult.Lost,
-            (Weapon.Rock, Weapon.Scissors) => RoundResult.Won,
-            (Weapon.Scissors, Weapon.Paper) => RoundResult.Won,
-            (Weapon.Scissors, Weapon.Rock) => RoundResult.Lost,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
+        (_, _) when roundResult == RoundResult.Draw => (Weapon)((int)weapon),
+        (Weapon.Paper, RoundResult.Won) => Weapon.Scissors,
+        (Weapon.Paper, RoundResult.Lost) => Weapon.Rock,
+        (Weapon.Rock, RoundResult.Lost) => Weapon.Scissors,
+        (Weapon.Rock, RoundResult.Won) => Weapon.Paper,
+        (Weapon.Scissors, RoundResult.Won) => Weapon.Rock,
+        (Weapon.Scissors, RoundResult.Lost) => Weapon.Paper,
+        _ => throw new ArgumentOutOfRangeException()
+    };
 }
